@@ -137,7 +137,7 @@ class F2Score(Metric):
     """
 
     def __init__(self, name=None):
-        super(Accuracy, self).__init__(name)
+        super(F2Score, self).__init__(name)
 
     def build(self, predictions, targets, inputs=None):
         """ Build accuracy, comparing predictions and targets. """
