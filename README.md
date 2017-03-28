@@ -62,7 +62,7 @@ To install TFLearn, the easiest way is to run
 
 For the bleeding edge version (recommended):
 ```python
-pip install git+https://github.com/tflearn/tflearn.git
+pip install git+https://github.com/pvza85/tflearn.git
 ```
 For the latest stable version:
 ```python
