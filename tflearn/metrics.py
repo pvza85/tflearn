@@ -108,7 +108,7 @@ class Accuracy(Metric):
 accuracy = Accuracy
 
 
-class F2score(Metric):
+class F2Score(Metric):
     """ F2score.
 
     Computes the model accuracy.  The target predictions are assumed
@@ -152,7 +152,7 @@ class F2score(Metric):
         # Add a special name to that tensor, to be used by monitors
         self.tensor.m_name = self.name
 
-f2score = F2score
+f2score = F2Score
 
 
 class Top_k(Metric):
