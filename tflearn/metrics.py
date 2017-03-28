@@ -107,6 +107,54 @@ class Accuracy(Metric):
 
 accuracy = Accuracy
 
+
+class F2score(Metric):
+    """ F2score.
+
+    Computes the model accuracy.  The target predictions are assumed
+    to be logits.  
+
+    If the predictions tensor is 1D (ie shape [?], or [?, 1]), then the 
+    labels are assumed to be binary (cast as float32), and accuracy is
+    computed based on the average number of equal binary outcomes,
+    thresholding predictions on logits > 0.  
+
+    Otherwise, accuracy is computed based on categorical outcomes,
+    and assumes the inputs (both the model predictions and the labels)
+    are one-hot encoded.  tf.argmax is used to obtain categorical
+    predictions, for equality comparison.
+
+    Examples:
+        ```python
+        # To be used with TFLearn estimators
+        acc = Accuracy()
+        regression = regression(net, metric=acc)
+        ```
+
+    Arguments:
+        name: The name to display.
+
+    """
+
+    def __init__(self, name=None):
+        super(Accuracy, self).__init__(name)
+
+    def build(self, predictions, targets, inputs=None):
+        """ Build accuracy, comparing predictions and targets. """
+        self.built = True
+        pshape = predictions.get_shape()
+        if len(pshape)==1 or (len(pshape)==2 and int(pshape[1])==1):
+            self.name = self.name or "binary_f2"   # clearly indicate binary accuracy being used
+            self.tensor = binary_accuracy_op(predictions, targets)
+        else:
+            self.name = self.name or "f2"   	    # traditional categorical accuracy
+            self.tensor = f2score_op(predictions, targets)
+        # Add a special name to that tensor, to be used by monitors
+        self.tensor.m_name = self.name
+
+f2score = F2score
+
+
 class Top_k(Metric):
     """ Top-k.
 
@@ -268,6 +316,39 @@ def accuracy_op(predictions, targets):
         acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
     return acc
 
+def f2score_op(predictions, targets):
+    """ f2score_op.
+
+    An op that calculates mean accuracy, assuming predictiosn are targets
+    are both one-hot encoded.
+
+    Examples:
+        ```python
+        input_data = placeholder(shape=[None, 784])
+        y_pred = my_network(input_data) # Apply some ops
+        y_true = placeholder(shape=[None, 10]) # Labels
+        acc_op = accuracy_op(y_pred, y_true)
+
+        # Calculate accuracy by feeding data X and labels Y
+        accuracy = sess.run(acc_op, feed_dict={input_data: X, y_true: Y})
+        ```
+
+    Arguments:
+        predictions: `Tensor`.
+        targets: `Tensor`.
+
+    Returns:
+        `Float`. The mean accuracy.
+
+    """
+    if not isinstance(targets, tf.Tensor):
+        raise ValueError("mean_accuracy 'input' argument only accepts type "
+                         "Tensor, '" + str(type(input)) + "' given.")
+
+    with tf.name_scope('Accuracy'):
+        correct_pred = tf.equal(tf.argmax(predictions, 1), tf.argmax(targets, 1))
+        acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+    return acc
 
 def binary_accuracy_op(predictions, targets):
     """ binary_accuracy_op.
